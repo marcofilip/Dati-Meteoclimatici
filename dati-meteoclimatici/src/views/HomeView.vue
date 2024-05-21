@@ -1,8 +1,10 @@
 <template>
+
   <div class="chart-container">
-    <apexchart type="line" :options="chartOptionsTemperatura" :series="seriesTemperatura"></apexchart>
-    <h1>------</h1>
-    <apexchart type="line" :options="chartOptionsPrecipitazioni" :series="seriesPrecipitazioni"></apexchart>
+    <h1>Temperatura</h1>
+    <div id="chart_temperature"></div>
+    <h1>Precipitazioni</h1>
+    <div id="chart_precipitazioni"></div>
   </div>
 </template>
 
@@ -21,12 +23,12 @@ export default {
           id: 'Dati Meteoclimatici'
         },
         xaxis: {
-          categories: []
+          categories: [69, 420]
         }
       },
       seriesTemperatura: [{
         name: 'Serie',
-        data: []
+        data: [69, 420]
       }],
 
       chartOptionsPrecipitazioni: {
@@ -34,14 +36,16 @@ export default {
           id: 'Dati Meteoclimatici'
         },
         xaxis: {
-          categories: []
+          categories: [69, 420]
         }
       },
       seriesPrecipitazioni: [{
         name: 'Serie',
-        data: []
+        data: [69, 420]
       }],
 
+      chart_temperature: null,
+      chart_precipitazioni: null,
       datajson: [],
     };
   },
@@ -49,7 +53,45 @@ export default {
     this.ExcelToJson('tabelle/tabelle-dati-meteoclimatici.xlsx')
       .then(() => {
         this.LoadGraph();
+        this.chartOptionsTemperatura.xaxis[{
+          categories: ["Hey", "Hey", 12]
+        }]
       });
+
+
+    var options_temperature = {
+      chart: {
+        type: 'temperature'
+      },
+      series: [{
+        name: 'sales',
+        data: []
+      }],
+      xaxis: {
+        categories: []
+      }
+    }
+
+    chart_temperature = new ApexCharts(document.querySelector("#chart_temperature"), options_temperature);
+
+    chart_temperature.render();
+
+    var options_precipitazioni = {
+      chart: {
+        type: 'precipitazioni'
+      },
+      series: [{
+        name: 'sales',
+        data: []
+      }],
+      xaxis: {
+        categories: []
+      }
+    }
+
+    chart_precipitazioni = new ApexCharts(document.querySelector("#chart_precipitazioni"), options_precipitazioni);
+
+    chart_precipitazioni.render();
   },
 
   methods: {
@@ -86,7 +128,7 @@ export default {
       }
       for (let i = 17; i < 33; i++) {
 
-        if (i === 0) {
+        if (i === 17) {
           precipitazione = this.datajson[1][`__EMPTY`];
         }
         else {
