@@ -1,12 +1,37 @@
 <template>
 
   <div class="chart-container">
-    <h1>Temperatura</h1>
-    <div id="chart_temperature"></div>
-    <h1>Precipitazioni</h1>
-    <div id="chart_precipitazioni"></div>
+    <v-card class="vcard">
+      <v-card-title>
+        Seleziona il comune.
+      </v-card-title>
+      <v-card-item>
+        <v-combobox clearable label="Combobox" :items="comuni"></v-combobox>
+      </v-card-item>
+    </v-card>
+    <div>
+      <div>
+        <h1>Temperatura</h1>
+        <apexchart type="line" :options="chartOptionsTemperatura" :series="seriesTemperatura"></apexchart>
+      </div>
+      <div>
+        <h1>Precipitazioni</h1>
+        <apexchart type="line" :options="chartOptionsPrecipitazioni" :series="seriesPrecipitazioni"></apexchart>
+      </div>
+    </div>
+
+
   </div>
 </template>
+
+<style scoped>
+.vcard {
+  margin: 10px auto 20px;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+}
+</style>
 
 <script>
 
@@ -20,78 +45,40 @@ export default {
     return {
       chartOptionsTemperatura: {
         chart: {
-          id: 'Dati Meteoclimatici'
+          id: 'Dati Meteoclimatici',
         },
         xaxis: {
-          categories: [69, 420]
+          categories: []
         }
       },
       seriesTemperatura: [{
         name: 'Serie',
-        data: [69, 420]
+        data: []
       }],
 
       chartOptionsPrecipitazioni: {
         chart: {
-          id: 'Dati Meteoclimatici'
+          id: 'Dati Meteoclimatici',
         },
         xaxis: {
-          categories: [69, 420]
+          categories: []
         }
       },
       seriesPrecipitazioni: [{
         name: 'Serie',
-        data: [69, 420]
+        data: []
       }],
 
-      chart_temperature: null,
-      chart_precipitazioni: null,
       datajson: [],
+      comuni: [],
     };
   },
   async created() {
-    this.ExcelToJson('tabelle/tabelle-dati-meteoclimatici.xlsx')
+    this.ExcelToJson('tabelle/tabelle-dati-meteoclimatici.xls')
       .then(() => {
+        this.GetComuni();
         this.LoadGraph();
-        this.chartOptionsTemperatura.xaxis[{
-          categories: ["Hey", "Hey", 12]
-        }]
       });
-
-
-    var options_temperature = {
-      chart: {
-        type: 'temperature'
-      },
-      series: [{
-        name: 'sales',
-        data: []
-      }],
-      xaxis: {
-        categories: []
-      }
-    }
-
-    chart_temperature = new ApexCharts(document.querySelector("#chart_temperature"), options_temperature);
-
-    chart_temperature.render();
-
-    var options_precipitazioni = {
-      chart: {
-        type: 'precipitazioni'
-      },
-      series: [{
-        name: 'sales',
-        data: []
-      }],
-      xaxis: {
-        categories: []
-      }
-    }
-
-    chart_precipitazioni = new ApexCharts(document.querySelector("#chart_precipitazioni"), options_precipitazioni);
-
-    chart_precipitazioni.render();
   },
 
   methods: {
@@ -102,7 +89,11 @@ export default {
         const workbook = XLSX.read(data, { type: 'array' });
         const firstSheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[firstSheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet);
+        const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+          defval: "",
+          header: 1
+        });
+
         this.datajson = jsonData;
         console.log(this.datajson);
       } catch (error) {
@@ -111,39 +102,44 @@ export default {
     },
 
     LoadGraph() {
-      const temperature = [];
-      const precipitazioni = [];
-      let temperatura, precipitazione;
+      const cate_temperature = [];
+      const cate_precipitazioni = [];
 
-      for (let i = 0; i < 16; i++) {
-
-        if (i === 0) {
-          temperatura = this.datajson[1][`__EMPTY`];
+      let j;
+      for (let i = 1; i < this.datajson[2].length; i++) {
+        if (this.datajson[2][i] == "") {
+          j = i + 1;
+          break;
         }
-        else {
-          temperatura = this.datajson[1][`__EMPTY_${i}`];
-        }
-
-        temperature.push(temperatura);
+        cate_temperature.push(this.datajson[2][i]);
       }
-      for (let i = 17; i < 33; i++) {
-
-        if (i === 17) {
-          precipitazione = this.datajson[1][`__EMPTY`];
-        }
-        else {
-          precipitazione = this.datajson[1][`__EMPTY_${i}`];
-        }
-
-        precipitazioni.push(precipitazione);
+      for (let i = j; i < this.datajson[2].length; i++) {
+        if (this.datajson[i] == "")
+          break;
+        cate_precipitazioni.push(this.datajson[2][i]);
       }
 
-      this.chartOptionsTemperatura.xaxis.categories = temperature;
-      this.chartOptionsPrecipitazioni.xaxis.categories = precipitazioni;
+      this.updateCategories(cate_temperature, cate_precipitazioni);
 
       console.log("Categorie Temperature: ", this.chartOptionsTemperatura.xaxis.categories);
       console.log("Categorie Precipitazioni: ", this.chartOptionsPrecipitazioni.xaxis.categories);
     },
+
+    GetComuni() {
+      for (let i = 3; i < this.datajson.length; i++) {
+        this.comuni.push(this.datajson[i][0]);
+      }
+      console.log("Comuni: ", this.comuni);
+    },
+
+    updateCategories(cate_temperature, cate_precipitazioni) {
+      this.chartOptionsTemperatura.xaxis = {
+        categories: cate_temperature
+      }
+      this.chartOptionsPrecipitazioni.xaxis = {
+        categories: cate_precipitazioni
+      }
+    }
   }
 };
 </script>

@@ -11,7 +11,7 @@
 import VueApexCharts from 'vue3-apexcharts'
 
 export default {
-  name: 'Chart',
+  name: 'ChartE',
   components: {
     apexcharts: VueApexCharts,
   },
@@ -38,7 +38,6 @@ export default {
         const newData = this.series[0].data.map(() => {
           return Math.floor(Math.random() * (max - min + 1)) + min
         })
-        // In the same way, update the series option
         this.series = [{
           data: newData
         }]
