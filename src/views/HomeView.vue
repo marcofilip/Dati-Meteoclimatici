@@ -1,40 +1,59 @@
 <template>
-
-  <div class="chart-container">
+  <div>
     <v-card class="vcard">
       <v-card-title>
-        Seleziona il comune.
+        <h1 class="titolo">Grafico Dati Meteoclimatici</h1>
       </v-card-title>
+      <div style="display: flex; align-items: center; width: 500px; margin: auto; margin-top: 20px">
+        <h3 style="margin-right: 20px; width: 40%">
+          Seleziona il comune.
+        </h3>
+
+        <v-combobox clearable chips label="Combobox" v-model="selectedComune" :items="comuni"
+          style="width: 60%"></v-combobox>
+
+      </div>
       <v-card-item>
-        <v-combobox clearable label="Combobox" :items="comuni"></v-combobox>
+        <div style="display: flex; justify-content: space-between">
+          <div style="flex: 1;">
+            <h1>Temperatura</h1>
+            <apexchart type="line" :options="chartOptionsTemperatura" :series="seriesTemperatura"></apexchart>
+          </div>
+          <div style="flex: 1;">
+            <h1>Precipitazioni</h1>
+            <apexchart type="line" :options="chartOptionsPrecipitazioni" :series="seriesPrecipitazioni"></apexchart>
+          </div>
+        </div>
       </v-card-item>
     </v-card>
-    <div>
-      <div>
-        <h1>Temperatura</h1>
-        <apexchart type="line" :options="chartOptionsTemperatura" :series="seriesTemperatura"></apexchart>
-      </div>
-      <div>
-        <h1>Precipitazioni</h1>
-        <apexchart type="line" :options="chartOptionsPrecipitazioni" :series="seriesPrecipitazioni"></apexchart>
-      </div>
-    </div>
-
-
   </div>
 </template>
 
 <style scoped>
 .vcard {
-  margin: 10px auto 20px;
+  margin: 100px;
+  margin-top: 10px;
   justify-content: center;
   align-items: center;
-  width: 300px;
+}
+
+.combobox {
+  width: 600px;
+}
+
+.titolo {
+  border: 5px solid #303030;
+  background-color: #2c2c2c;
+  border-radius: 20px;
+  width: fit-content;
+  padding-left: 20px;
+  padding-right: 20px;
+  margin: auto;
+  margin-top: 10px;
 }
 </style>
 
 <script>
-
 import VueApexCharts from 'vue3-apexcharts';
 const XLSX = require('xlsx');
 export default {
@@ -46,9 +65,22 @@ export default {
       chartOptionsTemperatura: {
         chart: {
           id: 'Dati Meteoclimatici',
+          toolbar: {
+            show: true,
+            tools: {
+              download: true,
+              selection: true,
+              zoom: true,
+              zoomin: true,
+              zoomout: true,
+              pan: true,
+              reset: true,
+            },
+            autoSelected: 'zoom'
+          },
         },
         xaxis: {
-          categories: []
+          categories: [2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
         }
       },
       seriesTemperatura: [{
@@ -59,9 +91,22 @@ export default {
       chartOptionsPrecipitazioni: {
         chart: {
           id: 'Dati Meteoclimatici',
+          toolbar: {
+            show: true,
+            tools: {
+              download: true,
+              selection: true,
+              zoom: true,
+              zoomin: true,
+              zoomout: true,
+              pan: true,
+              reset: true
+            },
+            autoSelected: 'zoom'
+          },
         },
         xaxis: {
-          categories: []
+          categories: [2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
         }
       },
       seriesPrecipitazioni: [{
@@ -69,16 +114,24 @@ export default {
         data: []
       }],
 
+
       datajson: [],
       comuni: [],
+      selectedComune: null,
     };
   },
   async created() {
-    this.ExcelToJson('tabelle/tabelle-dati-meteoclimatici.xls')
+    this.ExcelToJson('tabelle/tabelle-dati-meteoclimatici.xlsx')
       .then(() => {
         this.GetComuni();
         this.LoadGraph();
       });
+  },
+
+  watch: {
+    selectedComune(newComune) {
+      this.loadDataForComune(newComune);
+    },
   },
 
   methods: {
@@ -114,12 +167,10 @@ export default {
         cate_temperature.push(this.datajson[2][i]);
       }
       for (let i = j; i < this.datajson[2].length; i++) {
-        if (this.datajson[i] == "")
+        if (this.datajson[2][i] == "")
           break;
         cate_precipitazioni.push(this.datajson[2][i]);
       }
-
-      this.updateCategories(cate_temperature, cate_precipitazioni);
 
       console.log("Categorie Temperature: ", this.chartOptionsTemperatura.xaxis.categories);
       console.log("Categorie Precipitazioni: ", this.chartOptionsPrecipitazioni.xaxis.categories);
@@ -127,27 +178,56 @@ export default {
 
     GetComuni() {
       for (let i = 3; i < this.datajson.length; i++) {
-        this.comuni.push(this.datajson[i][0]);
+        if (this.datajson[i][0] != "")
+          this.comuni.push(this.datajson[i][0]);
       }
+      this.comuni.sort();
+      this.selectedComune = this.comuni[0];
       console.log("Comuni: ", this.comuni);
     },
 
-    updateCategories(cate_temperature, cate_precipitazioni) {
-      this.chartOptionsTemperatura.xaxis = {
-        categories: cate_temperature
+    loadDataForComune(comune) {
+      const temperature = [];
+      const precipitazioni = [];
+
+      for (let i = 3; i < this.datajson.length; i++) {
+        if (this.datajson[i][0] == comune) {
+          for (let j = 1; j < this.datajson[i].length; j++) {
+            if (this.datajson[i][j] == 0)
+              break;
+
+            if (this.datajson[i][j] == "....")
+              temperature.push(this.datajson[i][j - 1]);
+            else
+              temperature.push(this.datajson[i][j]);
+          }
+          i++;
+          for (let j = 1; j < this.datajson[i].length; j++) {
+            if (this.datajson[i][j] == 0)
+              break;
+            if (this.datajson[i][j] == "....")
+              precipitazioni.push(this.datajson[i][j - 1]);
+            else
+              precipitazioni.push(this.datajson[i][j]);
+          }
+          break;
+        }
       }
-      this.chartOptionsPrecipitazioni.xaxis = {
-        categories: cate_precipitazioni
-      }
-    }
+
+      console.log("Comune: ", comune);
+      console.log("Temperature: ", temperature);
+      console.log("Precipitazioni: ", precipitazioni);
+
+
+      this.seriesTemperatura = [{
+        name: 'Temperatura',
+        data: temperature
+      }];
+      this.seriesPrecipitazioni = [{
+        name: 'Precipitazioni',
+        data: precipitazioni
+      }];
+    },
   }
 };
 </script>
-
-<style scoped>
-.chart-container {
-  max-width: 600px;
-  max-height: 400px;
-  margin: auto;
-}
-</style>
