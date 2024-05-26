@@ -13,7 +13,7 @@
           style="width: 60%"></v-combobox>
 
       </div>
-      <v-card-item>
+      <v-card-item class="graphs">
         <div style="display: flex; justify-content: space-between">
           <div style="flex: 1;">
             <h1>Temperatura</h1>
@@ -31,7 +31,7 @@
 
 <style scoped>
 .vcard {
-  margin: 100px;
+  margin: 200px;
   margin-top: 10px;
   justify-content: center;
   align-items: center;
@@ -50,6 +50,9 @@
   padding-right: 20px;
   margin: auto;
   margin-top: 10px;
+}
+
+.graphs {
 }
 </style>
 
