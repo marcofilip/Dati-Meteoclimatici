@@ -1,7 +1,8 @@
 <template>
   <nav>
     <router-link to="/">Tabella</router-link> |
-    <router-link to="/grafico">Grafico</router-link>
+    <router-link to="/grafico">Grafico</router-link> |
+    <router-link to="/tabella2">Tabella 2</router-link>
   </nav>
   <router-view />
 </template>
