@@ -10,11 +10,9 @@ html { overflow-y: auto!important; }
 </style>
 
 <script>
-import VueApexCharts from 'vue3-apexcharts';
 const XLSX = require('xlsx');
 export default {
   components: {
-    apexchart: VueApexCharts,
   },
 
   data() {
